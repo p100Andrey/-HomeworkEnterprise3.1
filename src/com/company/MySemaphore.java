@@ -5,48 +5,48 @@ public class MySemaphore implements Semaphore {
     private int maxNumberOfFreeThreads;
 
     public MySemaphore(int i) {
-        if (i <= 0) throw
-                new IllegalArgumentException(i + " < 0");
+        if (i <= 0) {
+            throw new IllegalArgumentException(i + " < 0");
+        }
         numberOfFreeThreads = i;
         maxNumberOfFreeThreads = i;
     }
 
     @Override
     public synchronized void acquire() throws InterruptedException {
-        while (numberOfFreeThreads == 0) {
-            this.wait();
-        }
-        numberOfFreeThreads--;
-        this.notify();
+        acquire(1);
     }
 
     @Override
-    public synchronized void acquire(int permits) throws InterruptedException {
-        if (permits > maxNumberOfFreeThreads){
+    public synchronized void acquire(int permits) {
+        if (permits > maxNumberOfFreeThreads) {
             System.out.println("Number of permits more then possible!");
             return;
         }
-        System.out.println("Thread no=" + permits + " enter to take function  semaphore signals=" + this.numberOfFreeThreads);
-        while (this.numberOfFreeThreads < permits) {
-            wait();
+        while (numberOfFreeThreads < permits) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        this.numberOfFreeThreads -= permits;
-        this.notifyAll();
-        System.out.println("Thread no=" + permits + " taken  semaphore signals=" + this.numberOfFreeThreads);
+        numberOfFreeThreads -= permits;
+        notifyAll();
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("Getting of " + permits + " threads.");
     }
 
     @Override
     public synchronized void release() {
-        numberOfFreeThreads++;
-        this.notify();
+        release(1);
     }
 
     @Override
-    public synchronized void release(int permits) throws InterruptedException {
-        System.out.println("Thread no=" + permits + " enter to release function semaphore signals=" + this.numberOfFreeThreads);
-        this.numberOfFreeThreads += permits;
-        this.notifyAll();
-        System.out.println("Thread no=" + permits + " released semaphore signals=" + this.numberOfFreeThreads);
+    public synchronized void release(int permits) {
+        numberOfFreeThreads += permits;
+        notifyAll();
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("Returned " + permits + " threads.");
     }
 
     @Override
